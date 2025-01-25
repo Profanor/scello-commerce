@@ -37,6 +37,15 @@ export class ProductService {
     return this.prisma.product.findMany({ skip, take });
   }
 
+  // Get a single product
+  async getProduct(id: number) {
+    const product = await this.prisma.product.findUnique({ where: { id: id } });
+    if (!product) {
+      throw new NotFoundException('User not found');
+    }
+    return product;
+  }
+
   // Search products by name (case-insensitive, partial match)
   async searchProducts(name: string) {
     return this.prisma.product.findMany({

@@ -1,7 +1,7 @@
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -10,11 +10,15 @@ async function bootstrap() {
 
   // Enable CORS for frontend access
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+    ],
   });
 
   // Apply global validation pipe, using class-transformer internally for validation
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   // Swagger setup
   const config = new DocumentBuilder()
@@ -25,6 +29,11 @@ async function bootstrap() {
 
   const documentFactory = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
+
+  // Enable versioning using URI
+  app.enableVersioning({
+    type: VersioningType.URI,
+  });
 
   await app.listen(4000);
 }

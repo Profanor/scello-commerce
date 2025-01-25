@@ -13,35 +13,39 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ThrottlerGuard } from '@nestjs/throttler';
+// import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
-@Controller('product')
+@Controller({
+  version: '1',
+  path: 'products',
+})
 @UseGuards(ThrottlerGuard)
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @Post()
+  @Post('create') // works
   create(@Body() createProductDto: CreateProductDto) {
     return this.productService.createProduct(createProductDto);
   }
 
-  @Get()
+  @Get() // works
   findAll() {
     return this.productService.getProducts();
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.productService.findOne(+id);
-  // }
+  @Get(':id')
+  findOne(@Param('id') id: number) {
+    return this.productService.getProduct(+id);
+  }
 
   // Search products by name (case-insensitive, partial match)
-  @Get('search')
+  @Get('search') // works
   search(@Query('name') name: string) {
     return this.productService.searchProducts(name);
   }
 
   // Filter products by category and price range
-  @Get('filter')
+  @Get('filter') // works
   filter(
     @Query('category') category: string,
     @Query('minPrice') minPrice: number,
@@ -58,12 +62,14 @@ export class ProductController {
 
   // Update an existing product
   @Patch(':id')
+  // add guard
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.updateProduct({ id: +id, ...updateProductDto });
   }
 
   // Delete a product by ID
   @Delete(':id')
+  // add guard
   remove(@Param('id') id: string) {
     return this.productService.deleteProduct({ id: +id });
   }
