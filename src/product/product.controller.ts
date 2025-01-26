@@ -13,8 +13,10 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 // import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
+@ApiTags('Products')
 @Controller({
   version: '1',
   path: 'products',
@@ -23,29 +25,33 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @Post('create') // works
+  // Create a new product
+  @Post('create')
+  @ApiOperation({ summary: 'Create a new product' })
   create(@Body() createProductDto: CreateProductDto) {
     return this.productService.createProduct(createProductDto);
   }
 
-  @Get() // works
+  // Get all products with pagination
+  @Get()
   findAll() {
     return this.productService.getProducts();
   }
 
+  // Get a single product
   @Get(':id')
   findOne(@Param('id') id: number) {
     return this.productService.getProduct(+id);
   }
 
   // Search products by name (case-insensitive, partial match)
-  @Get('search') // works
+  @Get('search')
   search(@Query('name') name: string) {
     return this.productService.searchProducts(name);
   }
 
   // Filter products by category and price range
-  @Get('filter') // works
+  @Get('filter')
   filter(
     @Query('category') category: string,
     @Query('minPrice') minPrice: number,

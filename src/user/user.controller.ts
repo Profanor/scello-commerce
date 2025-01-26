@@ -8,6 +8,7 @@ import {
   Param,
   Delete,
   HttpCode,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,14 +16,35 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ValidateUserDto } from './dto/validate-user.dto';
+import { ApiTags } from '@nestjs/swagger';
+import { ThrottlerGuard } from '@nestjs/throttler';
+import { CreateAdminUserDto } from './dto/create-admin-user.dto';
 
-@Controller('user')
+@ApiTags('User')
+@Controller({
+  version: '1',
+  path: 'auth',
+})
+@UseGuards(ThrottlerGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('signup')
+  // create a regular user
+  @Post('/signup/user')
   create(@Body() createUserDto: CreateUserDto) {
+    // Ensure no admin-specific fields are present for regular users
+    if (createUserDto.isAdmin || createUserDto.adminKey) {
+      throw new UnauthorizedException(
+        'Regular users cannot provide isAdmin or adminKey',
+      );
+    }
     return this.userService.createUser(createUserDto);
+  }
+
+  // create an admin
+  @Post('/signup/admin')
+  adminSignup(@Body() createAdminDto: CreateAdminUserDto) {
+    return this.userService.createAdminUser(createAdminDto);
   }
 
   @Post('login')
